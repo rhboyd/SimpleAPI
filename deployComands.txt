@@ -1,0 +1,38 @@
+sam package --s3-bucket rboyd-workshop --template-file templates/template.yaml --output-template-file build/packaged.yaml --profile workshop \
+&& aws cloudformation deploy --template-file build/packaged.yaml --stack-name petition-api --parameter-overrides STAGE=petition DOMAIN=rboyd.dev --capabilities CAPABILITY_IAM --profile workshop
+
+
+sam build --use-container -b ./build/ -t template.yaml \
+&& sam package --s3-bucket rboyd-workshop --template-file build/template.yaml --output-template-file build/packaged.yaml --profile workshop\
+&& aws cloudformation deploy --template-file build/packaged.yaml --stack-name api-macro  --capabilities CAPABILITY_NAMED_IAM --profile workshop
+
+
+aws cloudformation deploy --stack-name api-macro-test --template-file test.yaml --capabilities CAPABILITY_IAM --profile workshop
+
+
+
+
+
+
+touch test_templates/named_queries_event.json \
+&& echo "{\"region\": \"us-east-1\", \"accountId\": \"053954707544\", \"fragment\": " >> test_templates/named_queries_event.json \
+&& cat test_templates/test.yaml | yq .Resources.GetMethod >> test_templates/named_queries_event.json \
+&& echo "}" >> test_templates/named_queries_event.json
+
+sam build --use-container -b ./build/ -t template.yaml \
+&& sam local invoke -t ./build/template.yaml -e test_templates/test_event.json SimpleAPIMacroFunction
+
+
+
+
+touch test_templates/dynamo_putitem_event.json \
+&& echo "{\"region\": \"us-east-1\", \"accountId\": \"053954707544\", \"requestId\":\"999\",\"fragment\": " >> test_templates/dynamo_putitem_event.json \
+&& cat test_templates/dynamo_db_test.yaml | yq .Resources.GetMethod >> test_templates/dynamo_putitem_event.json \
+&& echo "}" >> test_templates/dynamo_putitem_event.json
+
+
+sam build --use-container -b ./build/ -t template.yaml \
+&& sam local invoke -t ./build/template.yaml -e test_templates/dynamo_putitem_event.json SimpleAPIMacroFunction
+
+
+aws cloudformation deploy --stack-name api-macro-test --template-file test_templates/dynamo_db_test.yaml --capabilities CAPABILITY_IAM --profile workshop

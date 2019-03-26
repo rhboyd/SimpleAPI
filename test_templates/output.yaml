@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  RestAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "Macro Test API"
+
+  SimpleResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt RestAPI.RootResourceId
+      PathPart: "message"
+      RestApiId: !Ref RestAPI
+  SimpleProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref SimpleResource
+      PathPart: "{queryId}"
+      RestApiId: !Ref RestAPI
+
+  GetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: RestAPI
+      ResourceId:
+        Ref: SimpleProxyResource
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseTemplates:
+            application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestParameters:
+          integration.request.header.X-Amz-Target: "'DynamoDB_20120810.PutItem'"
+          integration.request.header.Content-Type: "'application/x-amz-json-1.0'"
+        RequestTemplates:
+          application/json: '{"Item": {"myPrimaryKey": {"S": "ValueForPrimaryKey"},"mySortKey": {"S": "ValueForSortKey"}}, "TableName": "myTableName"}"}'
+        Type: AWS
+        Uri: "arn:aws:apigateway:us-east-1:dynamodb:path//"

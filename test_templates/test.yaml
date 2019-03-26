@@ -1,0 +1,57 @@
+Resources:
+  RestAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "Macro Test API"
+
+  SimpleResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt RestAPI.RootResourceId
+      PathPart: "message"
+      RestApiId: !Ref RestAPI
+  SimpleProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref SimpleResource
+      PathPart: "{queryId}"
+      RestApiId: !Ref RestAPI
+
+  GetMethod:
+    Type: AWS::ApiGateway::Method
+    'Fn::Transform':
+      - Name: SimpleAPI
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: RestAPI
+      ResourceId:
+        Ref: SimpleProxyResource
+      HttpMethod: GET
+      Integration:
+        Service: Athena
+        Action:
+         Name: GetNamedQuery
+         Parameters:
+          - NamedQueryId: method.request.path.queryid
+        ResponseMaps:
+          # This would map the NamedQueries and UnprocessedNamedQueryIds to a response object that looks like
+          # {
+          #  "my-response-query-names": [response.NamedQueries],
+          #  "my-response-unprocessed-query-names": [response.UnprocessedNamedQueryIds]
+          # }
+          Success:
+            - NamedQueries: "my-response-query-names"
+            - UnprocessedNamedQueryIds: "my-response-unprocessed-query-names"
+
+          # This would map the Internal Server Exception to a response object that looks like
+          # {
+          #  "error-message": [response.Message]
+          # }
+          InternalServerException:
+            - Message: "error-message"
+          Failure:
+            # TODO
+            GENERIC
+          # with this configuration, we didn't specify a mapping for InvalidRequestException and it's included in the list of
+          # possible responses in the documentation, it would be directly passed back to the client without modification

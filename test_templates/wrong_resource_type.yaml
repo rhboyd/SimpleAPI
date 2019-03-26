@@ -1,0 +1,20 @@
+Resources:
+  RestAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "Macro Test API"
+
+  SimpleResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt RestAPI.RootResourceId
+      PathPart: "message"
+      RestApiId: !Ref RestAPI
+  SimpleProxyResource:
+    Type: AWS::ApiGateway::Resource
+    'Fn::Transform':
+      - Name: SimpleAPI
+    Properties:
+      ParentId: !Ref SimpleResource
+      PathPart: "{queryId}"
+      RestApiId: !Ref RestAPI

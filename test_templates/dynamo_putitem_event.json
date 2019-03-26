@@ -1,0 +1,54 @@
+{"region": "us-east-1", "accountId": "053954707544", "requestId":"999","fragment": 
+{
+  "Type": "AWS::ApiGateway::Method",
+  "Fn::Transform": [
+    {
+      "Name": "SimpleAPI"
+    }
+  ],
+  "Properties": {
+    "AuthorizationType": "NONE",
+    "RestApiId": {
+      "Ref": "RestAPI"
+    },
+    "ResourceId": {
+      "Ref": "SimpleProxyResource"
+    },
+    "HttpMethod": "GET",
+    "Integration": {
+      "Service": "DynamoDB",
+      "Action": {
+        "Name": "PutItem",
+        "Parameters": [
+          {
+            "TableName": "myTableName"
+          },
+          {
+            "Item": {
+              "myPrimaryKey": {
+                "S": "ValueForPrimaryKey"
+              },
+              "mySortKey": {
+                "S": "ValueForSortKey"
+              }
+            }
+          }
+        ]
+      },
+      "ResponseMaps": {
+        "Success": [
+          {
+            "Attributes": "returned-attributes"
+          }
+        ],
+        "ConditionalCheckFailedException": [
+          {
+            "Message": "error-message"
+          }
+        ],
+        "Failure": null
+      }
+    }
+  }
+}
+}

@@ -1,0 +1,69 @@
+{
+  "requestId": 43242,
+  "fragment": {
+    "Resources": {
+    "RestAPI": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "Macro Test API"
+      }
+    },
+    "SimpleResource": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": "RestAPI.RootResourceId",
+        "PathPart": "message",
+        "RestApiId": "RestAPI"
+      }
+    },
+    "SimpleProxyResource": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": "SimpleResource",
+        "PathPart": "{queryId}",
+        "RestApiId": "RestAPI"
+      }
+    },
+    "GetMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "RestApiId": {
+          "Ref": "RestAPI"
+        },
+        "ResourceId": {
+          "Ref": "SimpleProxyResource"
+        },
+        "HttpMethod": "GET",
+        "Integration": {
+          "Service": "Athena",
+          "Action": {
+            "Name": "GetNamedQuery",
+            "Parameters": [
+              {
+                "NamedQueryId": "method.request.path.queryid"
+              }
+            ]
+          }
+        },
+        "ResponseMaps": {
+          "Success": [
+            {
+              "NamedQueries": "my-response-query-names"
+            },
+            {
+              "UnprocessedNamedQueryIds": "my-response-unprocessed-query-names"
+            }
+          ],
+          "InternalServerException": [
+            {
+              "Message": "error-message"
+            }
+          ],
+          "Failure": "GENERIC"
+        }
+      }
+    }
+  }
+  }
+}

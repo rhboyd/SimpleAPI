@@ -1,0 +1,47 @@
+{"region": "us-east-1", "accountId": "053954707544", "fragment":
+{
+  "Type": "AWS::ApiGateway::Method",
+  "Fn::Transform": [
+    {
+      "Name": "SimpleAPI"
+    }
+  ],
+  "Properties": {
+    "AuthorizationType": "NONE",
+    "RestApiId": {
+      "Ref": "RestAPI"
+    },
+    "ResourceId": {
+      "Ref": "SimpleProxyResource"
+    },
+    "HttpMethod": "GET",
+    "Integration": {
+      "Service": "Athena",
+      "Action": {
+        "Name": "GetNamedQuery",
+        "Parameters": [
+          {
+            "NamedQueryId": "method.request.path.queryid"
+          }
+        ]
+      }
+    },
+    "ResponseMaps": {
+      "Success": [
+        {
+          "NamedQueries": "my-response-query-names"
+        },
+        {
+          "UnprocessedNamedQueryIds": "my-response-unprocessed-query-names"
+        }
+      ],
+      "InternalServerException": [
+        {
+          "Message": "error-message"
+        }
+      ],
+      "Failure": "GENERIC"
+    }
+  }
+}
+}

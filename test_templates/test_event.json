@@ -1,0 +1,15 @@
+{"region": "us-east-1", "requestId": "100" ,"accountId": "053954707544", "fragment":
+{
+  "Type": "AWS::ApiGateway::Resource",
+  "Fn::Transform": [
+    {
+      "Name": "SimpleAPI"
+    }
+  ],
+  "Properties": {
+    "ParentId": "SimpleResource",
+    "PathPart": "{queryId}",
+    "RestApiId": "RestAPI"
+  }
+}
+}

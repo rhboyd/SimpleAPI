@@ -1,0 +1,66 @@
+Resources:
+  RestAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "Macro Test API"
+
+  SimpleResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt RestAPI.RootResourceId
+      PathPart: "message"
+      RestApiId: !Ref RestAPI
+  SimpleProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref SimpleResource
+      PathPart: "{queryId}"
+      RestApiId: !Ref RestAPI
+
+  GetMethod:
+    Type: AWS::ApiGateway::Method
+    'Fn::Transform':
+      - Name: SimpleAPI
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: RestAPI
+      ResourceId:
+        Ref: SimpleProxyResource
+      HttpMethod: GET
+      Integration:
+        Credentials:
+          Fn::GetAtt:
+            - DDBReadRole
+            - Arn
+        Service: DynamoDB
+        Action:
+         Name: PutItem
+         Parameters:
+          - TableName: "myTableName"
+          - Item:
+              myPrimaryKey:
+                S: ValueForPrimaryKey
+              mySortKey:
+                S: ValueForSortKey
+        ResponseMaps:
+          Success:
+            - Attributes: "returned-attributes"
+          ConditionalCheckFailedException:
+            - Message: "error-message"
+          Failure: #TODO
+  DDBReadRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess

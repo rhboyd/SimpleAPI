@@ -1,0 +1,25 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Simple API macro
+  A macro that simplifies creating service integrations
+Resources:
+  Macro:
+    Type: AWS::CloudFormation::Macro
+    Properties:
+      Name: SimpleAPI
+      FunctionName: !GetAtt SimpleAPIMacroFunction.Arn
+  SimpleAPIMacroFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda_code/
+      Handler: simple_api.lambda_handler
+      Runtime: python3.7
+
+Outputs:
+  SimpleAPIMacroFunction:
+    Description: "API Deployment Macro Lambda Function ARN"
+    Value: !GetAtt SimpleAPIMacroFunction.Arn
+    Export:
+      Name: "SimpleAPIMacroFunction"
