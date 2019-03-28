@@ -23,10 +23,9 @@ Resources:
       - Name: SimpleAPI
     Properties:
       AuthorizationType: NONE
-      MethodResponses: # TODO Pull this into the macro so the user doesn't have to list the responses
+      MethodResponses:
         - StatusCode: 200
-        - StatusCode: 400
-        - StatusCode: 500
+        - StatusCode: 200
       RestApiId:
         Ref: RestAPI
       ResourceId:
@@ -37,16 +36,11 @@ Resources:
           Fn::GetAtt:
             - DDBReadRole
             - Arn
-        Service: dynamodb
+        Service: mq
         Action:
-         Name: PutItem
+         Name: ListBrokers
          Parameters:
-          - TableName: "MyTable"
-          - Item:
-              PartitionKey:
-                S: "entry"
-              SortKey:
-                S: "value"
+          - MaxResults: 100
         ResponseMaps:
           Success: #TODO
           Failure: #TODO

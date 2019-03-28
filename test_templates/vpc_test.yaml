@@ -2,7 +2,7 @@ Resources:
   RestAPI:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: "Dynamo Test API"
+      Name: "Macro Test API"
 
   SimpleResource:
     Type: AWS::ApiGateway::Resource
@@ -10,11 +10,11 @@ Resources:
       ParentId: !GetAtt RestAPI.RootResourceId
       PathPart: "message"
       RestApiId: !Ref RestAPI
-  SimpleProxyResource:
+  SimpleResourcePath:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !Ref SimpleResource
-      PathPart: "{queryId}"
+      PathPart: "{vpcid}"
       RestApiId: !Ref RestAPI
 
   GetMethod:
@@ -23,34 +23,32 @@ Resources:
       - Name: SimpleAPI
     Properties:
       AuthorizationType: NONE
-      MethodResponses: # TODO Pull this into the macro so the user doesn't have to list the responses
+      MethodResponses:
         - StatusCode: 200
-        - StatusCode: 400
-        - StatusCode: 500
       RestApiId:
         Ref: RestAPI
       ResourceId:
-        Ref: SimpleProxyResource
+        Ref: SimpleResourcePath
       HttpMethod: GET
       Integration:
         Credentials:
           Fn::GetAtt:
-            - DDBReadRole
+            - MyRole
             - Arn
-        Service: dynamodb
+        Service: ec2
         Action:
-         Name: PutItem
+         Name: CreateSubnet
          Parameters:
-          - TableName: "MyTable"
-          - Item:
-              PartitionKey:
-                S: "entry"
-              SortKey:
-                S: "value"
+          - VpcId: method.request.path.vpcid
+          - CidrBlock: method.request.querystring.cidr
         ResponseMaps:
-          Success: #TODO
+          Success:
+            - requestId: "request-id"
+            - subnet: "subnet"
+          InvalidInput:
+            - Message: "error-messages"
           Failure: #TODO
-  DDBReadRole:
+  MyRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:

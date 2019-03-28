@@ -36,3 +36,8 @@ sam build --use-container -b ./build/ -t template.yaml \
 
 
 aws cloudformation deploy --stack-name api-macro-test --template-file test_templates/dynamo_db_test.yaml --capabilities CAPABILITY_IAM --profile workshop
+
+
+
+aws cloudformation deploy --stack-name api-vpc-test --template-file test_templates/vpc_test.yaml --capabilities CAPABILITY_IAM --profile workshop
+aws cloudformation deploy --stack-name api-mq-test --template-file test_templates/amazon_mq_test.yaml --capabilities CAPABILITY_IAM --profile workshop

@@ -23,6 +23,8 @@ Resources:
       - Name: SimpleAPI
     Properties:
       AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
       RestApiId:
         Ref: RestAPI
       ResourceId:
