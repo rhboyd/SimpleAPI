@@ -14,7 +14,13 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !Ref SimpleResource
-      PathPart: "{queryId}"
+      PathPart: "{partitionKey}"
+      RestApiId: !Ref RestAPI
+  SimpleSecondProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref SimpleProxyResource
+      PathPart: "{sortKey}"
       RestApiId: !Ref RestAPI
 
   GetMethod:
@@ -30,27 +36,48 @@ Resources:
       RestApiId:
         Ref: RestAPI
       ResourceId:
-        Ref: SimpleProxyResource
+        Ref: SimpleSecondProxyResource
       HttpMethod: GET
       Integration:
         Credentials:
           Fn::GetAtt:
-            - DDBReadRole
+            - AdminRole
             - Arn
         Service: dynamodb
         Action:
          Name: PutItem
          Parameters:
-          - TableName: "MyTable"
+          ## TODO This neeeds to be hard-coded for now.
+          ## I have a couple ideas how to fix it, but haven't been able to test them yet
+          - TableName: "MY-TABLE-NAME"
           - Item:
               PartitionKey:
-                S: "entry"
+                S: "$input.params('partitionKey')"
               SortKey:
-                S: "value"
+                S: "$input.params('sortKey')"
         ResponseMaps:
           Success: #TODO
           Failure: #TODO
-  DDBReadRole:
+
+  MyDynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "MY-TABLE-NAME"
+      AttributeDefinitions:
+        - AttributeName: "PartitionKey"
+          AttributeType: "S"
+        - AttributeName: "SortKey"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "PartitionKey"
+          KeyType: "HASH"
+        - AttributeName: "SortKey"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+
+  AdminRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:

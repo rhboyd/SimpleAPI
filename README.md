@@ -1,4 +1,4 @@
-# Simple API
+# Simple API (WORK IN PROGRESS)
 
 This is a CloudFormation Macro that simplifies creating API Gateway integrations
 
@@ -44,6 +44,15 @@ This is used to deploy the macro to your AWS Account. You need to do this before
 sam build --use-container -b ./build/ -t template.yaml \
 && sam package --s3-bucket [your bucket name here] --template-file build/template.yaml --output-template-file build/packaged.yaml --profile workshop\
 && aws cloudformation deploy --template-file build/packaged.yaml --stack-name [your stack name here]  --capabilities CAPABILITY_NAMED_IAM --profile workshop
+```
+
+## Deploying Templates to be modified
+
+```bash
+# A DynamoDB PutItem example
+aws cloudformation deploy --stack-name api-macro-dynamodb-test --template-file test_templates/dynamo_db_test.yaml --capabilities CAPABILITY_IAM --profile workshop
+# A EC2 VPC Example
+aws cloudformation deploy --stack-name api-vpc-test --template-file test_templates/vpc_test.yaml --capabilities CAPABILITY_IAM --profile workshopaws cloudformation deploy --stack-name api-vpc-test --template-file test_templates/vpc_test.yaml --capabilities CAPABILITY_IAM --profile workshop
 ```
 
 ## Fetch, tail, and filter Lambda function logs
