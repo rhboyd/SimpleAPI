@@ -8,7 +8,7 @@ This is a CloudFormation Macro that simplifies creating API Gateway integrations
 ├── event.json                  <-- an event, probably in json format
 ├── lambda                      <-- Source code for a lambda function
 │   ├── __init__.py             <-- Never really knew what this was for
-│   ├── app.py                  <-- Lambda function code
+│   ├── simple_api.py           <-- Lambda function code
 │   ├── requirements.txt        <-- Requirements, probably in text format
 ├── template.yaml               <-- SAM Template
 └── tests                       <-- Unit tests, lol
@@ -36,33 +36,14 @@ sam build --use-container -b ./build/ -t ./template.yaml
 sam local invoke -t ./build/template.yaml -e event.json SimpleAPIMacroFunction
 ```
 
-**Invoking function locally through local API Gateway**
-
-```bash
-sam local start-api
-```
-
-If the previous command ran successfully you should now be able to hit the following local endpoint to invoke your function `http://localhost:3000/hello`
-
-**SAM CLI** is used to emulate both Lambda and API Gateway locally and uses our `template.yaml` to understand how to bootstrap this environment (runtime, where the source code is, etc.) - The following excerpt is what the CLI will read in order to initialize an API and its routes:
-
-```yaml
-...
-Events:
-    HelloWorld:
-        Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-        Properties:
-            Path: /hello
-            Method: get
-```
-
 ## Packaging and deployment
 
+This is used to deploy the macro to your AWS Account. You need to do this before you can transform 'real' CloudFormation templates.
 
 ```bash
 sam build --use-container -b ./build/ -t template.yaml \
-&& sam package --s3-bucket rboyd-workshop --template-file build/template.yaml --output-template-file build/packaged.yaml --profile workshop\
-&& aws cloudformation deploy --template-file build/packaged.yaml --stack-name api-macro  --capabilities CAPABILITY_NAMED_IAM --profile workshop
+&& sam package --s3-bucket [your bucket name here] --template-file build/template.yaml --output-template-file build/packaged.yaml --profile workshop\
+&& aws cloudformation deploy --template-file build/packaged.yaml --stack-name [your stack name here]  --capabilities CAPABILITY_NAMED_IAM --profile workshop
 ```
 
 ## Fetch, tail, and filter Lambda function logs
@@ -78,7 +59,6 @@ sam logs -n HelloWorldFunction --stack-name sam-app --tail
 You can find more information and examples about filtering Lambda function logs in the [SAM CLI Documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-logging.html).
 
 ## Testing
-
 
 Next, we install test dependencies and we run `pytest` against our `tests` folder to run our initial unit tests:
 

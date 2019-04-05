@@ -29,7 +29,7 @@ Resources:
         Ref: RestAPI
       ResourceId:
         Ref: SimpleResourcePath
-      HttpMethod: GET
+      HttpMethod: POST
       Integration:
         Credentials:
           Fn::GetAtt:
@@ -48,6 +48,33 @@ Resources:
           InvalidInput:
             - Message: "error-messages"
           Failure: #TODO
+  DescribeVPCsMethod:
+    Type: AWS::ApiGateway::Method
+    'Fn::Transform':
+      - Name: SimpleAPI
+    Properties:
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+      RestApiId:
+        Ref: RestAPI
+      ResourceId:
+        Ref: SimpleResourcePath
+      HttpMethod: GET
+      Integration:
+        Credentials:
+          Fn::GetAtt:
+            - MyRole
+            - Arn
+        Service: ec2
+        Action:
+         Name: DescribeVpcs
+        ResponseMaps:
+          Success:
+            - vpcSet: "my-vpc-set"
+            - requestId: "requestid-output-object"
+          Failure: #TODO
+
   MyRole:
     Type: "AWS::IAM::Role"
     Properties:

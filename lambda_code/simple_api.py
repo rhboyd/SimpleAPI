@@ -41,7 +41,7 @@ def integration_template():
         "RequestParameters": {},
         "RequestTemplates": {"application/json": ""},
         "Type": "AWS",
-        "Uri": '!Sub \"arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query\"'
+        "Uri": ""
     }
 
 
@@ -68,7 +68,7 @@ def handle_method(fragment):
     protocol = service_model.protocol
     op_model = service_model.operation_model(action["Name"])
 
-    request_parameters = action["Parameters"]
+    request_parameters = action.get("Parameters", {})
     params = dict(ChainMap(*request_parameters))
     print("params: {}".format(params))
     serializer = create_serializer(protocol)
@@ -106,7 +106,10 @@ def handle_method(fragment):
             new_integration["RequestParameters"].update({"integration.request.querystring.{}".format(query): "'{}'".format(request['query_string'][query])})
 
     # Set the body
-    new_integration["RequestTemplates"]["application/json"] = str(X.body, "utf-8") if X.body else ''
+    if isinstance(X.body, str):
+        new_integration["RequestTemplates"]["application/json"] = X.body
+    else:
+        new_integration["RequestTemplates"]["application/json"] = str(X.body, "utf-8") if X.body else ''
     new_integration["Uri"] = ":".join([
         "arn",
         "aws",
