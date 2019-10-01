@@ -40,3 +40,10 @@ aws cloudformation deploy --stack-name api-macro-dynamodb-test --template-file t
 
 aws cloudformation deploy --stack-name api-vpc-test --template-file test_templates/vpc_test.yaml --capabilities CAPABILITY_IAM --profile workshop
 aws cloudformation deploy --stack-name api-mq-test --template-file test_templates/amazon_mq_test.yaml --capabilities CAPABILITY_IAM --profile workshop
+
+
+aws cloudformation deploy --stack-name api-cfn-test --template-file test_templates/cloudformation_test.yaml --capabilities CAPABILITY_IAM --profile workshop
+
+
+
+aws cloudformation deploy --stack-name api-kinesis-test --template-file test_templates/kinesis_test.yaml --capabilities CAPABILITY_IAM --profile workshop

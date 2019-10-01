@@ -1,0 +1,60 @@
+Resources:
+  RestAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "CFN Test API"
+
+  SimpleResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt RestAPI.RootResourceId
+      PathPart: "cloudformation"
+      RestApiId: !Ref RestAPI
+
+  GetMethod:
+    Type: AWS::ApiGateway::Method
+    'Fn::Transform':
+      - Name: SimpleAPI
+    Properties:
+      AuthorizationType: NONE
+      MethodResponses: # TODO Pull this into the macro so the user doesn't have to list the responses
+        - StatusCode: 200
+        - StatusCode: 400
+        - StatusCode: 500
+      RestApiId:
+        Ref: RestAPI
+      ResourceId:
+        Ref: SimpleResource
+      HttpMethod: GET
+      Integration:
+        Credentials:
+          Fn::GetAtt:
+            - AdminRole
+            - Arn
+        Service: cloudformation
+        Action:
+         Name: ListStacks
+         # This is a fun quirk. the docs ask for "StackStatusFilter.member.N" and an enum type, but they
+         # actually want a "tuple" that we fake with a list.
+         Parameters:
+          - StackStatusFilter:
+              - CREATE_COMPLETE
+        ResponseMaps:
+          Success: #TODO
+          Failure: #TODO
+
+  AdminRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
